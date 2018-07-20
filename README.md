@@ -5,4 +5,4 @@
     asmhead.nas   ：ipl10运行后首先加载的程序，用于设置显卡格式，键盘，提供c语言入口
     bootpack.nas  ：设置c语言的运行规范，编译参数等等
     naskfunc.nas  ：用于汇编语言编写的基础函数，供c语言调用，将其作为c语言控制硬件的接口（作为系统API）
-    bootpack.c    ：os功能实现的核心代码
+    bootpack.c    ：os功能实现的核心代码。
