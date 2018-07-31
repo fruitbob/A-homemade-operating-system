@@ -23,7 +23,7 @@ void HariMain(void)
 	 init_mouse16(p,160,50,320);
 	 os_printfs(p,320,10,50,4,test);
 	 
-	 io_out8(PIC0_IMR, 0xf9); /* PIC1偲僉乕儃乕僪傪嫋壜(11111001) */
+	 io_out8(PIC0_IMR, 0xf9); 
 	io_out8(PIC1_IMR, 0xef); 
 	
 	 for(;;)
