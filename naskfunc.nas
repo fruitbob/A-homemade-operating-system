@@ -1,54 +1,56 @@
-;æ±‡ç¼–è¯­è¨€å®ç°çš„å‡½æ•°ï¼Œç”¨äºä½¿cpuè¿›å…¥ä¼‘çœ hlt
+;»ã±àÓïÑÔÊµÏÖµÄº¯Êı£¬ÓÃÓÚÊ¹cpu½øÈëĞİÃßhlt
 
-[FORMAT "WCOFF"]				; åˆ¶ä½œç›®æ ‡æ–‡ä»¶çš„æ¨¡å¼
-[BITS 32]						; åˆ¶ä½œ32ä½æ¨¡å¼ç”¨çš„æœºå™¨è¯­è¨€
-[INSTRSET "i486p"]				;ç”¨äº486cpu
+[FORMAT "WCOFF"]				; ÖÆ×÷Ä¿±êÎÄ¼şµÄÄ£Ê½
+[BITS 32]						; ÖÆ×÷32Î»Ä£Ê½ÓÃµÄ»úÆ÷ÓïÑÔ
+[INSTRSET "i486p"]				;ÓÃÓÚ486cpu
 
 
-[FILE "naskfunc.nas"]			; æ–‡ä»¶åç§°
-
-		GLOBAL	_write_mem8		;å£°æ˜å…¨å±€å‡½æ•° _io_hlt
+[FILE "naskfunc.nas"]			; ÎÄ¼şÃû³Æ
+		GLOBAL	_asm_inthandler20, _asm_inthandler2c
+		GLOBAL	_write_mem8		;ÉùÃ÷È«¾Öº¯Êı _io_hlt
 		GLOBAL	_io_hlt, _io_cli, _io_sti, _io_stihlt
 		GLOBAL	_io_in8,  _io_in16,  _io_in32
 		GLOBAL	_io_out8, _io_out16, _io_out32
 		GLOBAL	_io_load_eflags, _io_store_eflags,_load_gdtr,_load_idtr
-		GLOBAL	_asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
-		EXTERN	_inthandler21, _inthandler27, _inthandler2c       ;21ç”¨äºé”®ç›˜ä¸­æ–­ï¼Œ2cç”¨äºé¼ æ ‡ä¸­æ–­
-		
+		GLOBAL	_memtest_sub
+		GLOBAL	_load_cr0, _store_cr0
+		GLOBAL	_asm_inthandler21, _asm_inthandler27 
+		EXTERN	_inthandler21, _inthandler27      ;21ÓÃÓÚ¼üÅÌÖĞ¶Ï£¬2cÓÃÓÚÊó±êÖĞ¶Ï
+		EXTERN  _inthandler2c, _inthandler20      ;20ÓÃÓÚ¼ÆÊ±Æ÷ÖĞ¶Ï
 
-; å‡½æ•°å†…å®¹
+; º¯ÊıÄÚÈİ
 
-[SECTION .text]		; ç›®æ ‡æ–‡ä»¶ä¸­å†™äº†è¿™äº›ï¼Œå†å†™ç¨‹åº
+[SECTION .text]		; Ä¿±êÎÄ¼şÖĞĞ´ÁËÕâĞ©£¬ÔÙĞ´³ÌĞò
 _io_hlt:	; void io_hlt(void);
 		HLT
-		RET			;ç›¸å½“äºreturn
+		RET			;Ïàµ±ÓÚreturn
 
-_write_mem8:      ;void write_mem8(int add,int data) ;å‘addå†…å­˜å†™å…¥ä¸€ä¸ªå­—èŠ‚data
+_write_mem8:      ;void write_mem8(int add,int data) ;ÏòaddÄÚ´æĞ´ÈëÒ»¸ö×Ö½Údata
 		MOV	ECX,[ESP+4]
 		MOV	AX,[ESP+8]
 		MOV	[ECX],AX
 		RET
 
-_io_cli:	; void io_cli(void);ç¦æ­¢ä¸­æ–­
+_io_cli:	; void io_cli(void);½ûÖ¹ÖĞ¶Ï
 		CLI
 		RET
 
-_io_sti:	; void io_sti(void);å…è®¸ä¸­æ–­
+_io_sti:	; void io_sti(void);ÔÊĞíÖĞ¶Ï
 		STI
 		RET
 
-_io_stihlt:	; void io_stihlt(void);å…è®¸ä¸­æ–­åcpuæš‚åœ
+_io_stihlt:	; void io_stihlt(void);ÔÊĞíÖĞ¶ÏºócpuÔİÍ£
 		STI
 		HLT
 		RET
 
-_io_in8:	; int io_in8(int port);ä»ç«¯å£è¯»å–8bit
+_io_in8:	; int io_in8(int port);´Ó¶Ë¿Ú¶ÁÈ¡8bit
 		MOV		EDX,[ESP+4]		; port
 		MOV		EAX,0
 		IN		AL,DX
 		RET
 
-_io_in16:	; int io_in16(int port);ä»ç«¯å£pè¯»å–8æ¯”ç‰¹åˆ°al,p+1è¯»8bitåˆ°ah
+_io_in16:	; int io_in16(int port);´Ó¶Ë¿Úp¶ÁÈ¡8±ÈÌØµ½al,p+1¶Á8bitµ½ah
 		MOV		EDX,[ESP+4]		; port
 		MOV		EAX,0
 		IN		AX,DX
@@ -59,13 +61,13 @@ _io_in32:	; int io_in32(int port);
 		IN		EAX,DX
 		RET
 
-_io_out8:	; void io_out8(int port, int data);å°†8bitçš„dataå†™å…¥port
+_io_out8:	; void io_out8(int port, int data);½«8bitµÄdataĞ´Èëport
 		MOV		EDX,[ESP+4]		; port
 		MOV		AL,[ESP+8]		; data
 		OUT		DX,AL
 		RET
 
-_io_out16:	; void io_out16(int port, int data);å°†å‰8bitçš„dataå†™å…¥portï¼Œå8bitå†™å…¥p+1
+_io_out16:	; void io_out16(int port, int data);½«Ç°8bitµÄdataĞ´Èëport£¬ºó8bitĞ´Èëp+1
 		MOV		EDX,[ESP+4]		; port
 		MOV		EAX,[ESP+8]		; data
 		OUT		DX,AX
@@ -78,15 +80,16 @@ _io_out32:	; void io_out32(int port, int data);
 		RET
 
 _io_load_eflags:	; int io_load_eflags(void);
-		PUSHFD		;å°†32ä½çš„æ ‡å¿—å¯„å­˜å™¨eflageså‹å…¥å †æ ˆ
+		PUSHFD		;½«32Î»µÄ±êÖ¾¼Ä´æÆ÷eflagesÑ¹Èë¶ÑÕ»
 		POP		EAX
 		RET
 
-_io_store_eflags:	; void io_store_eflags(int eflags);ä¿®æ”¹eflagçš„å€¼
+_io_store_eflags:	; void io_store_eflags(int eflags);ĞŞ¸ÄeflagµÄÖµ
 		MOV		EAX,[ESP+4]
 		PUSH	EAX
 		POPFD		; POP EFLAGS 
 		RET
+
 _load_gdtr:		; void load_gdtr(int limit, int addr);
 		MOV		AX,[ESP+4]		; limit
 		MOV		[ESP+6],AX
@@ -98,6 +101,22 @@ _load_idtr:		; void load_idtr(int limit, int addr);
 		MOV		[ESP+6],AX
 		LIDT	[ESP+6]
 		RET
+
+_asm_inthandler20:                     ;¼ÆÊ±Æ÷ÖĞ¶Ï
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler20
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		IRETD
 
 _asm_inthandler21:
 		PUSH	ES
@@ -147,8 +166,46 @@ _asm_inthandler2c:
 		POP		ES
 		IRETD
 
+_load_cr0:		; int load_cr0(void);
+		MOV		EAX,CR0
+		RET
 
+_store_cr0:		; void store_cr0(int cr0);
+		MOV		EAX,[ESP+4]
+		MOV		CR0,EAX
+		RET
 
-
+_memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
+		PUSH	EDI						; 
+		PUSH	ESI
+		PUSH	EBX
+		MOV		ESI,0xaa55aa55			; pat0 = 0xaa55aa55;
+		MOV		EDI,0x55aa55aa			; pat1 = 0x55aa55aa;
+		MOV		EAX,[ESP+12+4]			; i = start;
+mts_loop:
+		MOV		EBX,EAX
+		ADD		EBX,0xffc				; p = i + 0xffc;
+		MOV		EDX,[EBX]				; old = *p;
+		MOV		[EBX],ESI				; *p = pat0;
+		XOR		DWORD [EBX],0xffffffff	; *p ^= 0xffffffff;
+		CMP		EDI,[EBX]				; if (*p != pat1) goto fin;
+		JNE		mts_fin
+		XOR		DWORD [EBX],0xffffffff	; *p ^= 0xffffffff;
+		CMP		ESI,[EBX]				; if (*p != pat0) goto fin;
+		JNE		mts_fin
+		MOV		[EBX],EDX				; *p = old;
+		ADD		EAX,0x1000				; i += 0x1000;
+		CMP		EAX,[ESP+12+8]			; if (i <= end) goto mts_loop;
+		JBE		mts_loop
+		POP		EBX
+		POP		ESI
+		POP		EDI
+		RET
+mts_fin:
+		MOV		[EBX],EDX				; *p = old;
+		POP		EBX
+		POP		ESI
+		POP		EDI
+		RET
 
 
